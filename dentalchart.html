@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dental Donut Chart</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  /* ===== DONUT ===== */
+  svg {
+    width: 280px;
+    height: 280px;
+    transform: rotate(-45deg);
+  }
+
+  .slice,
+  .inner-slice {
+    fill: #ffffff;
+    stroke: #000;
+    stroke-width: 2;
+    cursor: pointer;
+    transition: fill 0.2s;
+  }
+
+  .slice:hover,
+  .inner-slice:hover {
+    fill: #e5e7eb;
+  }
+
+  /* ===== MODAL ===== */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-box {
+    background: #fff;
+    width: 720px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+
+  .section {
+    margin-bottom: 25px;
+  }
+
+  .section-title {
+    font-weight: bold;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .item:hover {
+    background: #e5e7eb;
+  }
+
+  .swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1px solid #000;
+    flex-shrink: 0;
+  }
+
+  .label {
+    font-size: 14px;
+    color: #111827;
+  }
+
+  .footer {
+    text-align: right;
+    margin-top: 10px;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    color: #374151;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- DONUT -->
+<svg viewBox="0 0 200 200">
+
+  <!-- OUTER -->
+  <path class="slice" data-part
+    d="M100 100 L100 0 A100 100 0 0 1 200 100 Z"/>
+  <path class="slice" data-part
+    d="M100 100 L200 100 A100 100 0 0 1 100 200 Z"/>
+  <path class="slice" data-part
+    d="M100 100 L100 200 A100 100 0 0 1 0 100 Z"/>
+  <path class="slice" data-part
+    d="M100 100 L0 100 A100 100 0 0 1 100 0 Z"/>
+
+  <!-- INNER -->
+  <circle class="inner-slice" data-part cx="100" cy="100" r="55"/>
+</svg>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+
+    <div class="section">
+      <div class="section-title">CONDITION</div>
+      <div class="grid" id="condition"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">RESTORATIONS & PROSTHETICS</div>
+      <div class="grid" id="restoration"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">SURGERY</div>
+      <div class="grid" id="surgery"></div>
+    </div>
+
+    <div class="footer">
+      <button class="close-btn" onclick="closeModal()">Cancel</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let activePart = null;
+  const modal = document.getElementById("modal");
+
+  const DATA = {
+    condition: [
+      ["✓", "Present Teeth", "#10b981"],
+      ["D", "Decayed", "#ef4444"],
+      ["M", "Missing (Caries)", "#7c2d12"],
+      ["MO", "Missing (Other)", "#6b7280"],
+      ["Im", "Impacted", "#f59e0b"],
+      ["Sp", "Supernumerary", "#8b5cf6"],
+      ["Rf", "Root Fragment", "#78350f"],
+      ["Un", "Unerupted", "#cbd5e1"]
+    ],
+    restoration: [
+      ["Am", "Amalgam Filling", "#737373"],
+      ["Co", "Composite Filling", "#3b82f6"],
+      ["JC", "Jacket Crown", "#facc15"],
+      ["Ab", "Abutment", "#a855f7"],
+      ["Att", "Attachment", "#ec4899"],
+      ["P", "Pontic", "#f97316"],
+      ["In", "Inlay", "#06b6d4"],
+      ["Imp", "Implant", "#14b8a6"],
+      ["S", "Sealants", "#84cc16"],
+      ["Rm", "Removable Denture", "#f472b6"]
+    ],
+    surgery: [
+      ["X", "Extraction (Caries)", "#dc2626"],
+      ["XO", "Extraction (Other)", "#991b1b"]
+    ]
+  };
+
+  function build(sectionId, items) {
+    const wrap = document.getElementById(sectionId);
+    items.forEach(([code, label, color]) => {
+      const el = document.createElement("div");
+      el.className = "item";
+      el.innerHTML = `
+        <div class="swatch" style="background:${color}"></div>
+        <div class="label"><b>${code}</b> - ${label}</div>
+      `;
+      el.onclick = () => {
+        activePart.style.fill = color;
+        activePart.dataset.code = code;
+        closeModal();
+      };
+      wrap.appendChild(el);
+    });
+  }
+
+  build("condition", DATA.condition);
+  build("restoration", DATA.restoration);
+  build("surgery", DATA.surgery);
+
+  document.querySelectorAll("[data-part]").forEach(p => {
+    p.onclick = () => {
+      activePart = p;
+      modal.style.display = "flex";
+    };
+  });
+
+  function closeModal() {
+    modal.style.display = "none";
+    activePart = null;
+  }
+</script>
+
+</body>
+</html>
