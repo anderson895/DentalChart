@@ -2,30 +2,167 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dental Donut Chart</title>
-<link rel="stylesheet" href="css/style.css">
+<title>Clinical Dental Chart</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#0f766e,#065f46);
+  padding: 40px;
+}
+
+/* HEADER */
+.header {
+  text-align: center;
+  color: #fff;
+  margin-bottom: 30px;
+}
+.header h1 { margin-bottom: 5px; }
+
+/* CARD */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 30px;
+}
+
+/* TEETH */
+.section-title-main {
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin: 25px 0 15px;
+}
+
+.teeth-row {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 14px;
+  justify-items: center;
+}
+
+.tooth {
+  text-align: center;
+}
+
+.tooth-label {
+  background: #e5e7eb;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+/* DONUT */
+svg {
+  width: 60px;
+  height: 60px;
+  transform: rotate(-45deg);
+}
+
+.slice,
+.inner-slice {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.slice:hover,
+.inner-slice:hover {
+  fill: #e5e7eb;
+}
+
+/* RECORDS */
+.records {
+  margin-top: 30px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  height: 80px;
+}
+
+/* MODAL (UNCHANGED STYLE, slightly adapted) */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-box {
+  background: #fff;
+  width: 720px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+
+.section {
+  margin-bottom: 25px;
+}
+
+.section-title {
+  font-weight: bold;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.item:hover { background: #e5e7eb; }
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid #000;
+}
+
+.footer {
+  text-align: right;
+}
+</style>
 </head>
 
 <body>
 
-<!-- DONUT -->
-<svg viewBox="0 0 200 200">
+<div class="header">
+  <h1>Clinical Dental Chart</h1>
+  <div>Patient Information<br>Dental Clinic</div>
+</div>
 
-  <!-- OUTER -->
-  <path class="slice" data-part
-    d="M100 100 L100 0 A100 100 0 0 1 200 100 Z"/>
-  <path class="slice" data-part
-    d="M100 100 L200 100 A100 100 0 0 1 100 200 Z"/>
-  <path class="slice" data-part
-    d="M100 100 L100 200 A100 100 0 0 1 0 100 Z"/>
-  <path class="slice" data-part
-    d="M100 100 L0 100 A100 100 0 0 1 100 0 Z"/>
+<div class="card">
 
-  <!-- INNER -->
-  <circle class="inner-slice" data-part cx="100" cy="100" r="55"/>
-</svg>
+  <div class="section-title-main">UPPER TEETH</div>
+  <div class="teeth-row" id="upper"></div>
 
-<!-- MODAL -->
+  <div class="section-title-main">LOWER TEETH</div>
+  <div class="teeth-row" id="lower"></div>
+
+  <div class="records"><b>Treatment Records</b></div>
+</div>
+
+<!-- MODAL (UNCHANGED) -->
 <div class="modal" id="modal">
   <div class="modal-box">
 
@@ -45,19 +182,48 @@
     </div>
 
     <div class="footer">
-      <button class="close-btn" onclick="closeModal()">Cancel</button>
+      <button onclick="closeModal()">Cancel</button>
     </div>
 
   </div>
 </div>
 
 <script>
-  let activePart = null;
-  const modal = document.getElementById("modal");
+/* ===== TOOTH NUMBERS ===== */
+const upperTeeth = [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28];
+const lowerTeeth = [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
 
-  const DATA = {
+function toothTemplate() {
+  return `
+    <svg viewBox="0 0 200 200">
+      <path class="slice" data-part d="M100 100 L100 0 A100 100 0 0 1 200 100 Z"/>
+      <path class="slice" data-part d="M100 100 L200 100 A100 100 0 0 1 100 200 Z"/>
+      <path class="slice" data-part d="M100 100 L100 200 A100 100 0 0 1 0 100 Z"/>
+      <path class="slice" data-part d="M100 100 L0 100 A100 100 0 0 1 100 0 Z"/>
+      <circle class="inner-slice" data-part cx="100" cy="100" r="55"/>
+    </svg>`;
+}
+
+function render(rowId, teeth) {
+  const row = document.getElementById(rowId);
+  teeth.forEach(n => {
+    const d = document.createElement("div");
+    d.className = "tooth";
+    d.innerHTML = `<div class="tooth-label">${n}</div>${toothTemplate()}`;
+    row.appendChild(d);
+  });
+}
+
+render("upper", upperTeeth);
+render("lower", lowerTeeth);
+
+/* ===== MODAL LOGIC (YOUR ORIGINAL) ===== */
+let activePart = null;
+const modal = document.getElementById("modal");
+
+const DATA = {
     condition: [
-      ["✓", "Present Teeth", "#10b981"],
+      // ["✓", "Present Teeth", "#10b981"],
       ["D", "Decayed", "#ef4444"],
       ["M", "Missing (Caries)", "#7c2d12"],
       ["MO", "Missing (Other)", "#6b7280"],
@@ -84,39 +250,35 @@
     ]
   };
 
-  function build(sectionId, items) {
-    const wrap = document.getElementById(sectionId);
-    items.forEach(([code, label, color]) => {
-      const el = document.createElement("div");
-      el.className = "item";
-      el.innerHTML = `
-        <div class="swatch" style="background:${color}"></div>
-        <div class="label"><b>${code}</b> - ${label}</div>
-      `;
-      el.onclick = () => {
-        activePart.style.fill = color;
-        activePart.dataset.code = code;
-        closeModal();
-      };
-      wrap.appendChild(el);
-    });
-  }
-
-  build("condition", DATA.condition);
-  build("restoration", DATA.restoration);
-  build("surgery", DATA.surgery);
-
-  document.querySelectorAll("[data-part]").forEach(p => {
-    p.onclick = () => {
-      activePart = p;
-      modal.style.display = "flex";
+function build(id, items) {
+  const wrap = document.getElementById(id);
+  items.forEach(([c,l,col])=>{
+    const el=document.createElement("div");
+    el.className="item";
+    el.innerHTML=`<div class="swatch" style="background:${col}"></div><b>${c}</b> - ${l}`;
+    el.onclick=()=>{
+      activePart.style.fill=col;
+      closeModal();
     };
+    wrap.appendChild(el);
   });
+}
 
-  function closeModal() {
-    modal.style.display = "none";
-    activePart = null;
+build("condition",DATA.condition);
+build("restoration",DATA.restoration);
+build("surgery",DATA.surgery);
+
+document.addEventListener("click",e=>{
+  if(e.target.dataset.part!==undefined){
+    activePart=e.target;
+    modal.style.display="flex";
   }
+});
+
+function closeModal(){
+  modal.style.display="none";
+  activePart=null;
+}
 </script>
 
 </body>
