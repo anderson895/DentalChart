@@ -1,12 +1,14 @@
- body {
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background: #f1f5f9;
-    font-family: Arial, sans-serif;
   }
 
+  /* ===== DONUT ===== */
   svg {
     width: 280px;
     height: 280px;
@@ -15,8 +17,8 @@
 
   .slice,
   .inner-slice {
-    fill: white;
-    stroke: black;
+    fill: #ffffff;
+    stroke: #000;
     stroke-width: 2;
     cursor: pointer;
     transition: fill 0.2s;
@@ -27,42 +29,80 @@
     fill: #e5e7eb;
   }
 
-  /* MODAL */
+  /* ===== MODAL ===== */
   .modal {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.4);
     display: none;
-    align-items: center;
     justify-content: center;
+    align-items: center;
   }
 
   .modal-box {
-    background: white;
-    padding: 20px;
+    background: #fff;
+    width: 720px;
+    max-height: 85vh;
+    overflow-y: auto;
     border-radius: 10px;
-    width: 230px;
-    text-align: center;
+    padding: 20px 24px;
   }
 
-  .colors {
+  .section {
+    margin-bottom: 25px;
+  }
+
+  .section-title {
+    font-weight: bold;
+    color: #1f2937;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+  }
+
+  .grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
     gap: 10px;
-    margin-top: 15px;
-  }
-
-  .color {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: 1px solid #000;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f8fafc;
     cursor: pointer;
+    transition: background 0.15s;
   }
 
-  .close {
-    margin-top: 15px;
+  .item:hover {
+    background: #e5e7eb;
+  }
+
+  .swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1px solid #000;
+    flex-shrink: 0;
+  }
+
+  .label {
+    font-size: 14px;
+    color: #111827;
+  }
+
+  .footer {
+    text-align: right;
+    margin-top: 10px;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
     font-size: 14px;
     cursor: pointer;
-    color: #555;
+    color: #374151;
   }
